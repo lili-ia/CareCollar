@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareCollar.Server", "CareCollar.Server\CareCollar.Server.csproj", "{8B4AF8E5-802B-4B57-9558-014EF8E26255}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareCollar.Domain", "CareCollar.Domain\CareCollar.Domain.csproj", "{AC3FD9A0-B5A6-48A9-A82B-33733136A1CF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareCollar.Persistence", "CareCollar.Persistence\CareCollar.Persistence.csproj", "{512640E4-5F85-40CC-945F-8BB484004E1F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B4AF8E5-802B-4B57-9558-014EF8E26255}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B4AF8E5-802B-4B57-9558-014EF8E26255}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B4AF8E5-802B-4B57-9558-014EF8E26255}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B4AF8E5-802B-4B57-9558-014EF8E26255}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC3FD9A0-B5A6-48A9-A82B-33733136A1CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC3FD9A0-B5A6-48A9-A82B-33733136A1CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC3FD9A0-B5A6-48A9-A82B-33733136A1CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC3FD9A0-B5A6-48A9-A82B-33733136A1CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{512640E4-5F85-40CC-945F-8BB484004E1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{512640E4-5F85-40CC-945F-8BB484004E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{512640E4-5F85-40CC-945F-8BB484004E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{512640E4-5F85-40CC-945F-8BB484004E1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
