@@ -1,11 +1,14 @@
+using System.Data;
 using System.Text;
 using CareCollar.Application.Contracts;
 using CareCollar.Application.Services;
 using CareCollar.Infrastructure.Security;
 using CareCollar.Persistence;
+using CareCollar.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<CareCollarDbContext>(options =>
     options.UseNpgsql(connectionString, 
         o => o.UseNodaTime()));
+
+builder.Services.AddScoped<IDbConnection>((sp) => 
+    new NpgsqlConnection(connectionString));
 
 builder.Services.AddScoped<ICareCollarDbContext>(provider => 
     provider.GetRequiredService<CareCollarDbContext>());
@@ -29,6 +35,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPetService, PetService>();
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<ICollarService, CollarService>();
+builder.Services.AddScoped<IHealthDataRepository, HealthDataRepository>();
+builder.Services.AddScoped<IIngestionService, IngestionService>();
+builder.Services.AddScoped<IThresholdService, ThresholdService>();
 
 builder.Services.AddAuthentication(options =>
     {

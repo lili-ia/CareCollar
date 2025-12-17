@@ -7,26 +7,18 @@ using Microsoft.Extensions.Logging;
 
 namespace CareCollar.Application.Services;
 
-public class CollarService : ICollarService
+public class CollarService(ICareCollarDbContext context, ILogger<CollarService> logger)
+    : ICollarService
 {
-    private readonly ICareCollarDbContext _context;
-    private readonly ILogger<CollarService> _logger;
-
-    public CollarService(ICareCollarDbContext context, ILogger<CollarService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     public async Task<Result> BindToPetAsync(BindCollarDto dto, Guid userId, CancellationToken ct)
     {
-        var petExists = await _context.Pets
+        var petExists = await context.Pets
             .AnyAsync(p => p.Id == dto.PetId && p.UserId == userId, ct);
 
         if (!petExists)
             return Result.Failure("Pet not found", ErrorType.NotFound);
 
-        var collar = await _context.CollarDevices
+        var collar = await context.CollarDevices
             .FirstOrDefaultAsync(c => c.Id == dto.CollarId, ct);
 
         if (collar is null)
@@ -38,12 +30,12 @@ public class CollarService : ICollarService
         collar.PetId = dto.PetId;
         try
         {
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
             return Result.Success();
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError(ex, "Failed to bind collar {CollarId} to pet {PetId}", dto.CollarId, dto.PetId);
+            logger.LogError(ex, "Failed to bind collar {CollarId} to pet {PetId}", dto.CollarId, dto.PetId);
             return Result.InternalServerError();
         }
     }
@@ -57,14 +49,21 @@ public class CollarService : ICollarService
 
         try
         {
-            await _context.CollarDevices.AddAsync(device, ct);
-            await _context.SaveChangesAsync(ct);
+            await context.CollarDevices.AddAsync(device, ct);
+            await context.SaveChangesAsync(ct);
             return Result<Guid>.Success(device.Id);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to register collar {CollarSerialNumber}", dto.SerialNumber);
+            logger.LogError(ex, "Failed to register collar {CollarSerialNumber}", dto.SerialNumber);
             return Result<Guid>.InternalServerError();
         }
+    }
+
+    public async Task<bool> UserOwnsCollarAsync(Guid collarId, Guid userId, CancellationToken ct)
+    {
+        return await context.CollarDevices
+            .AsNoTracking()
+            .AnyAsync(c => c.Id == collarId && c.Pet!.UserId == userId, ct);
     }
 }

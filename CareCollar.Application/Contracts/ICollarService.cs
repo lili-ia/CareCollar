@@ -8,4 +8,6 @@ public interface ICollarService
     Task<Result> BindToPetAsync(BindCollarDto dto, Guid userId, CancellationToken ct);
 
     Task<Result<Guid>> RegisterDeviceAsync(RegisterCollarDto dto, CancellationToken ct);
+
+    Task<bool> UserOwnsCollarAsync(Guid collarId, Guid userId, CancellationToken ct);
 }
