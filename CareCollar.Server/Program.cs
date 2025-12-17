@@ -1,6 +1,7 @@
 using System.Text;
 using CareCollar.Application.Contracts;
 using CareCollar.Application.Services;
+using CareCollar.Infrastructure.Security;
 using CareCollar.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,12 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes( // HACK: configure null checking for all sections on startup
     jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPetService, PetService>();
+builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddScoped<ICollarService, CollarService>();
 
 builder.Services.AddAuthentication(options =>
     {
