@@ -16,6 +16,9 @@ builder.Services.AddDbContext<CareCollarDbContext>(options =>
     options.UseNpgsql(connectionString, 
         o => o.UseNodaTime()));
 
+builder.Services.AddScoped<ICareCollarDbContext>(provider => 
+    provider.GetRequiredService<CareCollarDbContext>());
+
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes( // HACK: configure null checking for all sections on startup
     jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));

@@ -2,7 +2,6 @@ using CareCollar.Application.Contracts;
 using CareCollar.Application.DTOs;
 using CareCollar.Application.Mappers;
 using CareCollar.Domain.Entities;
-using CareCollar.Persistence;
 using CareCollar.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,10 +10,10 @@ namespace CareCollar.Application.Services;
 
 public class PetService : IPetService
 {
-    private readonly CareCollarDbContext _context;
+    private readonly ICareCollarDbContext _context;
     private readonly ILogger<PetService> _logger;
 
-    public PetService(ILogger<PetService> logger, CareCollarDbContext context)
+    public PetService(ILogger<PetService> logger, ICareCollarDbContext context)
     {
         _logger = logger;
         _context = context;
@@ -33,7 +32,7 @@ public class PetService : IPetService
         };
         try
         {
-            await _context.AddAsync(pet, ct);
+            await _context.Pets.AddAsync(pet, ct);
             await _context.SaveChangesAsync(ct);
 
             var dto = pet.ToDto();

@@ -1,7 +1,6 @@
 using CareCollar.Application.Contracts;
 using CareCollar.Application.DTOs;
 using CareCollar.Domain.Entities;
-using CareCollar.Persistence;
 using CareCollar.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,10 +9,10 @@ namespace CareCollar.Application.Services;
 
 public class CollarService : ICollarService
 {
-    private readonly CareCollarDbContext _context;
+    private readonly ICareCollarDbContext _context;
     private readonly ILogger<CollarService> _logger;
 
-    public CollarService(CareCollarDbContext context, ILogger<CollarService> logger)
+    public CollarService(ICareCollarDbContext context, ILogger<CollarService> logger)
     {
         _context = context;
         _logger = logger;

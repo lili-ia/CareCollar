@@ -1,21 +1,12 @@
 ﻿using System.Reflection;
+using CareCollar.Application.Contracts;
 using CareCollar.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CareCollar.Persistence;
 
-public class CareCollarDbContext(DbContextOptions<CareCollarDbContext> options) : DbContext(options)
+public class CareCollarDbContext(DbContextOptions<CareCollarDbContext> options) : DbContext(options), ICareCollarDbContext
 {
-    public DbSet<User> Users { get; set; } = null!;
-    
-    public DbSet<Pet> Pets { get; set; } = null!;
-    
-    public DbSet<CollarDevice> CollarDevices { get; set; } = null!;
-    
-    public DbSet<HealthData> HealthData { get; set; } = null!;
-    
-    public DbSet<HealthThreshold> HealthThresholds { get; set; } = null!;
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
@@ -28,4 +19,14 @@ public class CareCollarDbContext(DbContextOptions<CareCollarDbContext> options) 
         optionsBuilder.UseSnakeCaseNamingConvention();
         base.OnConfiguring(optionsBuilder);
     }
+
+    public DbSet<User> Users { get; } = null!;
+    
+    public DbSet<Pet> Pets { get; } = null!;
+    
+    public DbSet<CollarDevice> CollarDevices { get; } = null!;
+    
+    public DbSet<HealthThreshold> HealthThresholds { get; } = null!;
+    
+    public DbSet<HealthData> HealthData { get; set; } = null!;
 }

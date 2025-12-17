@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\CareCollar.Application\CareCollar.Application.csproj" />
       <ProjectReference Include="..\CareCollar.Domain\CareCollar.Domain.csproj" />
     </ItemGroup>
 

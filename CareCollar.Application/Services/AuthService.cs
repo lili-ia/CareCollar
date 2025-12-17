@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Text;
 using CareCollar.Application.Contracts;
 using CareCollar.Domain.Entities;
-using CareCollar.Persistence;
 using CareCollar.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,13 +13,13 @@ namespace CareCollar.Application.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly CareCollarDbContext _context;
+    private readonly ICareCollarDbContext _context;
     private readonly byte[] _jwtSecret;
     private readonly ILogger<AuthService> _logger;
     private readonly IPasswordHasher _passwordHasher;
 
     public AuthService(
-        CareCollarDbContext context, 
+        ICareCollarDbContext context, 
         IConfiguration configuration, 
         ILogger<AuthService> logger, 
         IPasswordHasher passwordHasher)
