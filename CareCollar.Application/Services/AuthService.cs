@@ -3,14 +3,12 @@ using System.Security.Claims;
 using System.Text;
 using CareCollar.Application.Contracts;
 using CareCollar.Domain.Entities;
-using CareCollar.Infrastructure.Security;
 using CareCollar.Persistence;
 using CareCollar.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Npgsql;
 
 namespace CareCollar.Application.Services;
 
@@ -19,12 +17,18 @@ public class AuthService : IAuthService
     private readonly CareCollarDbContext _context;
     private readonly byte[] _jwtSecret;
     private readonly ILogger<AuthService> _logger;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public AuthService(CareCollarDbContext context, IConfiguration configuration, ILogger<AuthService> logger)
+    public AuthService(
+        CareCollarDbContext context, 
+        IConfiguration configuration, 
+        ILogger<AuthService> logger, 
+        IPasswordHasher passwordHasher)
     {
         _context = context;
         _logger = logger;
-        
+        _passwordHasher = passwordHasher;
+
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secret = Encoding.ASCII.GetBytes(jwtSettings["Secret"] ?? string.Empty);
         _jwtSecret = secret;
@@ -35,7 +39,7 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = email,
-            PasswordHash = PasswordHasher.HashPassword(password)
+            PasswordHash = _passwordHasher.HashPassword(password)
         };
 
         try
@@ -62,7 +66,7 @@ public class AuthService : IAuthService
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, ct);
 
-        if (user is null || !PasswordHasher.VerifyPassword(password, user.PasswordHash))
+        if (user is null || !_passwordHasher.VerifyPassword(password, user.PasswordHash))
             return Result<User>.Failure("Invalid credentials", ErrorType.Unauthorized);
 
         return Result<User>.Success(user);

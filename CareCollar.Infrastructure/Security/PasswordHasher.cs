@@ -1,10 +1,12 @@
+using CareCollar.Application.Contracts;
+
 namespace CareCollar.Infrastructure.Security;
 
-public static class PasswordHasher
+public class PasswordHasher() : IPasswordHasher
 {
-    public static string HashPassword(string password) => 
+    public string HashPassword(string password) => 
         BCrypt.Net.BCrypt.HashPassword(password);
     
-    public static bool VerifyPassword(string password, string hashedPassword) => 
+    public bool VerifyPassword(string password, string hashedPassword) => 
         BCrypt.Net.BCrypt.Verify(password, hashedPassword);
 }
