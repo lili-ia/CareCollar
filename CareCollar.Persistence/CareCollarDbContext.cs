@@ -29,4 +29,6 @@ public class CareCollarDbContext(DbContextOptions<CareCollarDbContext> options) 
     public DbSet<HealthThreshold> HealthThresholds { get; } = null!;
     
     public DbSet<HealthData> HealthData { get; set; } = null!;
+    
+    public DbSet<Notification> Notifications { get; } = null!;
 }

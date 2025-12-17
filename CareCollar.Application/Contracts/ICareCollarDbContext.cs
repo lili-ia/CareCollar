@@ -13,7 +13,9 @@ public interface ICareCollarDbContext
     
     DbSet<HealthThreshold> HealthThresholds { get; }
     
-    public DbSet<HealthData> HealthData { get; set; } 
+    public DbSet<HealthData> HealthData { get; set; }
+    
+    DbSet<Notification> Notifications { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

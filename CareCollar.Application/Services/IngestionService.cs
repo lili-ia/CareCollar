@@ -10,29 +10,46 @@ namespace CareCollar.Application.Services;
 
 public class IngestionService(
     IHealthDataRepository dataRepo,
-    ICareCollarDbContext efContext,
-    ILogger<IngestionService> logger)
+    ICareCollarDbContext context,
+    ILogger<IngestionService> logger,
+    INotificationService notificationService)
     : IIngestionService
 {
     public async Task<Result> ProcessDataAsync(HealthDataIngestionDto data, CancellationToken ct)
     {
         await dataRepo.InsertHealthDataAsync(data);
 
-        var thresholds = await efContext.HealthThresholds
+        var thresholds = await context.HealthThresholds
             .AsNoTracking()
             .Where(t => t.Pet.Devices.Any(c => c.Id == data.CollarId))
             .ToListAsync(ct);
 
         foreach (var threshold in thresholds)
         {
-            switch (threshold.MetricType)
+            double? currentValue = threshold.MetricType switch
             {
-                case MetricType.HeartRate:
-                    EvaluateThreshold(threshold, data.HeartRateBPM, "Heart Rate");
-                    break;
-                case MetricType.Temperature:
-                    EvaluateThreshold(threshold, data.TemperatureCelsius, "Temperature");
-                    break;
+                MetricType.HeartRate => data.HeartRateBPM,
+                MetricType.Temperature => data.TemperatureCelsius,
+                _ => null
+            };
+
+            if (!currentValue.HasValue || (!(currentValue > threshold.MaxValue) && !(currentValue < threshold.MinValue))) 
+                continue;
+
+            var pet = await context.Pets
+                .AsNoTracking()
+                .Where(p => p.Id == threshold.PetId)
+                .Select(p => new Pet { UserId = p.UserId, Name = p.Name })
+                .FirstOrDefaultAsync(ct);
+            
+            if (pet is not null)
+            {
+                await notificationService.CreateNotificationAsync(
+                    pet.UserId, 
+                    $"Abnormal {threshold.MetricType}", 
+                    $"{pet.Name}'s {threshold.MetricType} is {currentValue}. Threshold name: {threshold.ThresholdName}",
+                    ct
+                );
             }
         }
 

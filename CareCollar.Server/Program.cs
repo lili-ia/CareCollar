@@ -38,6 +38,7 @@ builder.Services.AddScoped<ICollarService, CollarService>();
 builder.Services.AddScoped<IHealthDataRepository, HealthDataRepository>();
 builder.Services.AddScoped<IIngestionService, IngestionService>();
 builder.Services.AddScoped<IThresholdService, ThresholdService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddAuthentication(options =>
     {
