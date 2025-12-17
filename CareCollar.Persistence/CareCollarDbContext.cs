@@ -20,15 +20,15 @@ public class CareCollarDbContext(DbContextOptions<CareCollarDbContext> options) 
         base.OnConfiguring(optionsBuilder);
     }
 
-    public DbSet<User> Users { get; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
     
-    public DbSet<Pet> Pets { get; } = null!;
+    public DbSet<Pet> Pets { get; set; } = null!;
     
-    public DbSet<CollarDevice> CollarDevices { get; } = null!;
+    public DbSet<CollarDevice> CollarDevices { get; set; } = null!;
     
-    public DbSet<HealthThreshold> HealthThresholds { get; } = null!;
+    public DbSet<HealthThreshold> HealthThresholds { get; set; } = null!;
     
     public DbSet<HealthData> HealthData { get; set; } = null!;
     
-    public DbSet<Notification> Notifications { get; } = null!;
+    public DbSet<Notification> Notifications { get; set; } = null!;
 }

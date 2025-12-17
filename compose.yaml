@@ -1,0 +1,30 @@
+services:
+  web:
+    image: care-collar-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - JwtSettings__Secret=${JwtSettings__Secret}
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+    ports:
+      - "8090:8080"
+    restart: unless-stopped
+  
+  db:
+    image: postgres:latest
+    container_name: care-collar-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: CareCollar
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    restart: unless-stopped
+    
+volumes:
+  postgres_data:

@@ -62,6 +62,22 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
+for (int i = 0; i < 10; i++)
+{
+    try 
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CareCollarDbContext>();
+        db.Database.Migrate();
+        break; 
+    }
+    catch (Npgsql.NpgsqlException)
+    {
+        Console.WriteLine("Db is not ready. Waiting 3 seconds.");
+        Thread.Sleep(3000);
+    }
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

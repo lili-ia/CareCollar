@@ -54,7 +54,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error registering user subscription.");
+            _logger.LogError(ex, "Error registering user.");
             return Result<User>.InternalServerError(); 
         }
     }
