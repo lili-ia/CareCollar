@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\CareCollar.Domain\CareCollar.Domain.csproj" />
-      <ProjectReference Include="..\CareCollar.Infrastructure\CareCollar.Infrastructure.csproj" />
       <ProjectReference Include="..\CareCollar.Persistence\CareCollar.Persistence.csproj" />
       <ProjectReference Include="..\CareCollar.Shared\CareCollar.Shared.csproj" />
     </ItemGroup>
@@ -20,10 +19,6 @@
       <Reference Include="System.IdentityModel.Tokens.Jwt">
         <HintPath>..\..\..\.nuget\packages\system.identitymodel.tokens.jwt\8.0.1\lib\net9.0\System.IdentityModel.Tokens.Jwt.dll</HintPath>
       </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Mappers\" />
     </ItemGroup>
 
 </Project>

@@ -10,4 +10,14 @@
       <PackageReference Include="BCrypt.Net-Core" Version="1.6.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\CareCollar.Application\CareCollar.Application.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.AspNetCore.Http.Abstractions">
+        <HintPath>..\..\..\..\..\usr\share\dotnet\shared\Microsoft.AspNetCore.App\9.0.11\Microsoft.AspNetCore.Http.Abstractions.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

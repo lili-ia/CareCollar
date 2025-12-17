@@ -21,6 +21,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\CareCollar.Application\CareCollar.Application.csproj" />
+      <ProjectReference Include="..\CareCollar.Infrastructure\CareCollar.Infrastructure.csproj" />
       <ProjectReference Include="..\CareCollar.Persistence\CareCollar.Persistence.csproj" />
     </ItemGroup>
 
