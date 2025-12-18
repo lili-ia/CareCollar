@@ -5,6 +5,5 @@ namespace CareCollar.Application.Contracts;
 
 public interface IIngestionService
 {
-    Task<Result> ProcessDataAsync(HealthDataIngestionDto data, CancellationToken ct);
-    
+    Task<Result> ProcessDataAsync(HealthDataIngestionDto data, Guid userId, CancellationToken ct);
 }

@@ -120,7 +120,8 @@ namespace CareCollar.Persistence.Migrations
                 });
             
             migrationBuilder.Sql(
-                "SELECT create_hypertable('health_data'::regclass, 'time'::text, chunk_time_interval => INTERVAL '7 days');"
+                "SELECT create_hypertable('health_data'::regclass, 'time'::text, chunk_time_interval => INTERVAL '7 days');",
+                suppressTransaction: true
             );
             
             migrationBuilder.CreateIndex(

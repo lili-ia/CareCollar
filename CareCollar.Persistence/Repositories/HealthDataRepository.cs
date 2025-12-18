@@ -10,10 +10,25 @@ public class HealthDataRepository(IDbConnection dbConnection) : IHealthDataRepos
     public async Task<int> InsertHealthDataAsync(HealthDataIngestionDto data)
     {
         const string sql = @"
-            INSERT INTO health_data (time, collar_id, heart_rate_bpm, temperature_celsius, gps_latitude, gps_longitude)
-            VALUES (NOW(), @CollarId, @HeartRateBPM, @TemperatureCelsius, @Latitude, @Longitude);";
+        INSERT INTO health_data (time, collar_id, heart_rate_bpm, temperature_celsius, gps_latitude, gps_longitude)
+        SELECT 
+            NOW(), 
+            id, 
+            @HeartRateBPM, 
+            @TemperatureCelsius, 
+            @Latitude, 
+            @Longitude
+        FROM collar_devices 
+        WHERE serial_number = @SerialNumber;";
 
-        return await dbConnection.ExecuteAsync(sql, data);
+        var affectedRows = await dbConnection.ExecuteAsync(sql, data);
+    
+        if (affectedRows == 0)
+        {
+            throw new Exception($"Collar with serial number {data.SerialNumber} not found.");
+        }
+
+        return affectedRows;
     }
     
     public async Task<IEnumerable<HealthHistoryDto>> GetHistoryAsync(

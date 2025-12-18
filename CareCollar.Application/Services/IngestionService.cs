@@ -15,13 +15,21 @@ public class IngestionService(
     INotificationService notificationService)
     : IIngestionService
 {
-    public async Task<Result> ProcessDataAsync(HealthDataIngestionDto data, CancellationToken ct)
+    public async Task<Result> ProcessDataAsync(HealthDataIngestionDto data, Guid userId, CancellationToken ct)
     {
-        await dataRepo.InsertHealthDataAsync(data);
+        try 
+        {
+            await dataRepo.InsertHealthDataAsync(data);
+        }
+        catch (Exception ex) // HACK: catching just Exception is enough for MVP but requires specific exception later
+        {
+            return Result.Failure("Collar not found", ErrorType.NotFound);
+        }
 
         var thresholds = await context.HealthThresholds
             .AsNoTracking()
-            .Where(t => t.Pet.Devices.Any(c => c.Id == data.CollarId))
+            .Where(t => t.Pet.Devices.Any(c => c.SerialNumber == data.SerialNumber)
+                        && t.Pet.UserId == userId)
             .ToListAsync(ct);
 
         foreach (var threshold in thresholds)

@@ -1,7 +1,7 @@
 namespace CareCollar.Application.DTOs;
 
 public record HealthDataIngestionDto(
-    Guid CollarId,
+    string SerialNumber,
     double HeartRateBPM,
     double TemperatureCelsius,
     double Latitude,
