@@ -5,7 +5,7 @@ using Dapper;
 
 namespace CareCollar.Persistence.Repositories;
 
-public class HealthDataRepository(IDbConnection dbConnection) : IHealthDataRepository // TODO: add global error handling
+public class HealthDataRepository(IDbConnection dbConnection) : IHealthDataRepository
 {
     public async Task<int> InsertHealthDataAsync(HealthDataIngestionDto data)
     {
@@ -39,7 +39,7 @@ public class HealthDataRepository(IDbConnection dbConnection) : IHealthDataRepos
     {
         const string sql = @"
         SELECT 
-            time_bucket(@Interval, time) AS TimeBucket,
+            time_bucket(@Interval::interval, time:timestamptz) AS TimeBucket,
             AVG(heart_rate_bpm) AS AvgHeartRate,
             AVG(temperature_celsius) AS AvgTemperature
         FROM health_data

@@ -8,17 +8,8 @@ using Microsoft.Extensions.Logging;
 
 namespace CareCollar.Application.Services;
 
-public class PetService : IPetService
+public class PetService(ILogger<PetService> logger, ICareCollarDbContext context) : IPetService
 {
-    private readonly ICareCollarDbContext _context;
-    private readonly ILogger<PetService> _logger;
-
-    public PetService(ILogger<PetService> logger, ICareCollarDbContext context)
-    {
-        _logger = logger;
-        _context = context;
-    }
-
     public async Task<Result<PetDto>> AddPetAsync(CreatePetDto petDto, Guid userId, CancellationToken ct)
     {
         var pet = new Pet
@@ -32,22 +23,22 @@ public class PetService : IPetService
         };
         try
         {
-            await _context.Pets.AddAsync(pet, ct);
-            await _context.SaveChangesAsync(ct);
+            await context.Pets.AddAsync(pet, ct);
+            await context.SaveChangesAsync(ct);
 
             var dto = pet.ToDto();
             return Result<PetDto>.Success(dto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding pet.");
+            logger.LogError(ex, "Error adding pet.");
             return Result<PetDto>.InternalServerError();
         }
     }
     
     public async Task<Result<PetDto>> GetPetByIdAsync(Guid id, Guid userId, CancellationToken ct)
     {
-        var petDto = await _context.Pets
+        var petDto = await context.Pets
             .AsNoTracking()
             .Where(p => p.Id == id && p.UserId == userId)
             .Select(PetMapper.ScalarProjection)
@@ -61,7 +52,7 @@ public class PetService : IPetService
 
     public async Task<Result<List<PetDto>>> GetAllPetsAsync(Guid userId, CancellationToken ct)
     {
-        var petDtos = await _context.Pets
+        var petDtos = await context.Pets
             .AsNoTracking()
             .Where(p => p.UserId == userId)
             .Select(PetMapper.ScalarProjection)
@@ -72,12 +63,12 @@ public class PetService : IPetService
 
     public async Task<Result<PetDto>> UpdatePetAsync(Guid id, UpdatePetDto petDto, Guid userId, CancellationToken ct)
     {
-        var pet = await _context.Pets
+        var pet = await context.Pets
             .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId, ct);
 
         if (pet is null)
         {
-            _logger.LogWarning("Attempted to update non-existent pet with ID: {PetId}", id);
+            logger.LogWarning("Attempted to update non-existent pet with ID: {PetId}", id);
             return Result<PetDto>.Failure("Pet not found.", ErrorType.NotFound);
         }
 
@@ -88,14 +79,14 @@ public class PetService : IPetService
 
         try
         {
-            await _context.SaveChangesAsync(ct);
+            await context.SaveChangesAsync(ct);
 
             var dto = pet.ToDto();
             return Result<PetDto>.Success(dto);
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError(ex, "Failed to save updates for pet {PetId}", id);
+            logger.LogError(ex, "Failed to save updates for pet {PetId}", id);
             return Result<PetDto>.InternalServerError();
         }
     }
