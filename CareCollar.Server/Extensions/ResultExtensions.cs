@@ -22,7 +22,7 @@ public static class ResultExtensions
             { IsSuccess: false, ErrorType: ErrorType.Validation } => new BadRequestObjectResult(result.ErrorMessage),
             { IsSuccess: false, ErrorType: ErrorType.Forbidden } => new ObjectResult(result.ErrorMessage) { StatusCode = 403 },
             { IsSuccess: false, ErrorType: ErrorType.Unauthorized } => new ObjectResult(result.ErrorMessage) { StatusCode = 401 },
-            { IsSuccess: false, ErrorType: ErrorType.Conflict } => new ObjectResult(result.ErrorMessage) { StatusCode = 409 },
+            { IsSuccess: false, ErrorType: ErrorType.Conflict } =>  new ObjectResult(result.ErrorMessage) {StatusCode = 409},
             { IsSuccess: false, ErrorType: ErrorType.ServerError or null } => new ObjectResult(result.ErrorMessage ?? "Server error") { StatusCode = 500 },
             _ => new ObjectResult("Unexpected error") { StatusCode = 500 }
         };

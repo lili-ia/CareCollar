@@ -21,7 +21,7 @@ public class IngestionService(
         {
             await dataRepo.InsertHealthDataAsync(data);
         }
-        catch (Exception ex) // HACK: catching just Exception is enough for MVP but requires specific exception later
+        catch (Exception ex) 
         {
             return Result.Failure("Collar not found", ErrorType.NotFound);
         }
@@ -30,7 +30,7 @@ public class IngestionService(
             .AsNoTracking()
             .Where(t => t.Pet.Devices.Any(c => c.SerialNumber == data.SerialNumber)
                         && t.Pet.UserId == userId)
-            .ToListAsync(ct);
+            .ToListAsync();
 
         foreach (var threshold in thresholds)
         {
@@ -48,7 +48,7 @@ public class IngestionService(
                 .AsNoTracking()
                 .Where(p => p.Id == threshold.PetId)
                 .Select(p => new Pet { UserId = p.UserId, Name = p.Name })
-                .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync();
             
             if (pet is not null)
             {
@@ -56,7 +56,7 @@ public class IngestionService(
                     pet.UserId, 
                     $"Abnormal {threshold.MetricType}", 
                     $"{pet.Name}'s {threshold.MetricType} is {currentValue}. Threshold name: {threshold.ThresholdName}",
-                    ct
+                    CancellationToken.None
                 );
             }
         }

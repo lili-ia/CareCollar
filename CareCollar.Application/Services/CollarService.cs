@@ -40,8 +40,14 @@ public class CollarService(ICareCollarDbContext context, ILogger<CollarService> 
         }
     }
 
-    public async Task<Result<Guid>> RegisterDeviceAsync(RegisterCollarDto dto, CancellationToken ct)
+    public async Task<Result<Guid>> RegisterDeviceAsync(RegisterCollarDto dto, Guid userId, CancellationToken ct)
     {
+        var isAdmin = await context.Users
+            .AnyAsync(u => u.Id == userId && u.Email == "admin@example.com", ct);
+        
+        if (!isAdmin)
+            return Result<Guid>.Failure("Access denied.", ErrorType.Forbidden);
+        
         var device = new CollarDevice
         {
             SerialNumber = dto.SerialNumber

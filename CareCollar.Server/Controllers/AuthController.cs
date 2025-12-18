@@ -3,13 +3,15 @@ using CareCollar.DTOs;
 using CareCollar.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
+using CareCollar.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CareCollar.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 [Produces(MediaTypeNames.Application.Json)]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService, IUserContext userContext) : ControllerBase
 {
     /// <summary>
     /// Registers a new user in the system.
@@ -57,5 +59,63 @@ public class AuthController(IAuthService authService) : ControllerBase
         var token = authService.GenerateJwtToken(userResult.Value!);
         
         return Ok(token);
+    }
+    
+    /// <summary>
+    /// Deletes the currently authenticated user's account.
+    /// </summary>
+    /// <param name="userContext">Service to access current user identity.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">User deleted successfully.</response>
+    /// <response code="401">Unauthorized: Missing or invalid token.</response>
+    /// <response code="404">User not found.</response>
+    [Authorize] 
+    [HttpDelete("me")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete([FromServices] IUserContext userContext, CancellationToken ct)
+    {
+        var userId = userContext.UserId;
+
+        if (userId == Guid.Empty)
+            return Unauthorized();
+
+        var result = await authService.DeleteUserAsync(userId, ct);
+        
+        if (!result.IsSuccess)
+            return result.ToActionResult();
+
+        return NoContent();
+    }
+    
+    /// <summary>
+    /// [Admin Only] Retrieves a list of all registered users.
+    /// </summary>
+    /// <remarks>
+    /// This is an **Administrative function**. 
+    /// Access is restricted to accounts with the email: **admin@example.com**.
+    /// </remarks>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A list of user data transfer objects.</returns>
+    /// <response code="200">Returns the list of all users.</response>
+    /// <response code="401">Unauthorized: Missing or invalid JWT token.</response>
+    /// <response code="403">Forbidden: Current user is not an administrator.</response>
+    [Authorize]
+    [HttpGet("admin/users")]
+    [ProducesResponseType(typeof(List<UserDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetAllUsers(CancellationToken ct)
+    {
+        var userId = userContext.UserId; 
+        
+        if (userId == Guid.Empty)
+            return Unauthorized();
+
+        var result = await authService.GetAllUsersAsync(userId, ct);
+        
+        return result.ToActionResult();
     }
 }

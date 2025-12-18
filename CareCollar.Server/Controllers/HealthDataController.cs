@@ -25,15 +25,15 @@ public class HealthDataController(
     /// <param name="to">End timeframe.</param>
     /// <param name="bucketMinutes">Time aggregation interval (for TimescaleDB hypertable).</param>
     [HttpGet("history/{collarId:Guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<HealthHistoryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetHistory(
         Guid collarId, 
         [FromQuery] DateTime from, 
         [FromQuery] DateTime to,
-        [FromQuery] int bucketMinutes = 5,
-        CancellationToken ct = default) 
+        CancellationToken ct,
+        [FromQuery] int bucketMinutes = 5) 
     {
         var userId = userContext.UserId;
         if (userId == Guid.Empty) return Unauthorized();
@@ -56,7 +56,7 @@ public class HealthDataController(
     [HttpPost("ingest")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> IngestData([FromBody] HealthDataIngestionDto data, CancellationToken ct = default)
+    public async Task<IActionResult> IngestData([FromBody] HealthDataIngestionDto data, CancellationToken ct)
     {
         var userId = userContext.UserId;
         if (userId == Guid.Empty)

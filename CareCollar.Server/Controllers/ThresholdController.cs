@@ -21,9 +21,11 @@ public class ThresholdController(IThresholdService thresholdService, IUserContex
     /// the business logic will trigger an alert.
     /// </remarks>
     /// <response code="200">Threshold created successfully.</response>
+    /// <response code="401">Unauthorized: User context missing.</response>
     /// <response code="404">Pet not found or does not belong to the user.</response>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ThresholdResponseDto))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateThreshold([FromBody] CreateThresholdDto dto, CancellationToken ct = default)
     {
@@ -39,8 +41,10 @@ public class ThresholdController(IThresholdService thresholdService, IUserContex
     /// </summary>
     /// <param name="petId">The Guid of the pet.</param>
     /// <response code="200">List of thresholds returned.</response>
+    /// <response code="401">Unauthorized: User context missing.</response>
     [HttpGet("pet/{petId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ThresholdResponseDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPetThresholds(Guid petId, CancellationToken ct = default)
     {
         var userId = userContext.UserId;
@@ -55,9 +59,11 @@ public class ThresholdController(IThresholdService thresholdService, IUserContex
     /// </summary>
     /// <param name="id">The Guid of the threshold.</param>
     /// <response code="204">No Content (Successful deletion).</response>
+    /// <response code="401">Unauthorized: User context missing.</response>
     /// <response code="404">Threshold not found.</response>
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteThreshold(Guid id, CancellationToken ct = default)
     {

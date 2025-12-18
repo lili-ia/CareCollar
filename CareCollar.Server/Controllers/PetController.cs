@@ -37,8 +37,10 @@ public class PetController(IPetService petService, IUserContext userContext) : C
     /// Retrieves all pets associated with the current user.
     /// </summary>
     /// <response code="200">Returns a list of pets.</response>
+    /// <response code="401">Unauthorized: User context missing.</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PetDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAllPets()
     {
         var userId = userContext.UserId;
@@ -53,9 +55,11 @@ public class PetController(IPetService petService, IUserContext userContext) : C
     /// </summary>
     /// <param name="id">The unique Guid of the pet.</param>
     /// <response code="200">Pet found.</response>
+    /// <response code="401">Unauthorized: User context missing.</response>
     /// <response code="404">Pet not found for the current user.</response>
     [HttpGet("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PetDto))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPet(Guid id)
     {
@@ -71,8 +75,12 @@ public class PetController(IPetService petService, IUserContext userContext) : C
     /// </summary>
     /// <param name="id">The Guid of the pet to update.</param>
     /// <param name="model">New data for the pet.</param>
+    /// <response code="200">Pet successfully updated.</response>
+    /// <response code="401">Unauthorized: User context missing.</response>
+    /// <response code="404">Pet not found for the current user.</response>
     [HttpPut("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PetDto))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePet(Guid id, [FromBody] UpdatePetDto model)
     {

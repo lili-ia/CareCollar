@@ -49,13 +49,21 @@ public class CollarController(ICollarService collarService, IUserContext userCon
     /// </remarks>
     /// <response code="200">Device registered successfully.</response>
     /// <response code="401">User is not authorized and can not access this resource.</response>
+    /// <response code="403">Forbidden: Current user is not an administrator.</response>
     /// <response code="500">Internal server error during registration.</response>
-    [HttpPost("register")]
+    [HttpPost("admin/register")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegisterCollarDto dto, CancellationToken ct)
     {
-        var result = await collarService.RegisterDeviceAsync(dto, ct);
+        var userId = userContext.UserId;
+
+        if (userId == Guid.Empty)
+        {
+            return Unauthorized();
+        }
+        
+        var result = await collarService.RegisterDeviceAsync(dto, userId, ct);
         return result.ToActionResult();
     }
 }

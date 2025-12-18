@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using CareCollar.Application.Contracts;
+using CareCollar.Application.DTOs;
 using CareCollar.Domain.Entities;
 using CareCollar.Shared;
 using Microsoft.EntityFrameworkCore;
@@ -70,7 +71,47 @@ public class AuthService : IAuthService
 
         return Result<User>.Success(user);
     }
-    
+
+    public async Task<Result> DeleteUserAsync(Guid userId, CancellationToken ct)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user is null)
+            return Result.Failure("User not found", ErrorType.NotFound);
+
+        try
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync(ct);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting user {UserId}", userId);
+            return Result.InternalServerError();
+        }
+    }
+
+    public async Task<Result<List<UserDto>>> GetAllUsersAsync(Guid userId, CancellationToken ct)
+    {
+        var isAdmin = await _context.Users
+            .AnyAsync(u => u.Id == userId && u.Email == "admin@example.com", ct);
+        
+        if (!isAdmin)
+            return Result<List<UserDto>>.Failure("Access denied.", ErrorType.Forbidden);
+
+        var users = await _context.Users
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                CreatedAt = u.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        return Result<List<UserDto>>.Success(users); 
+    }
+
     public string GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
