@@ -5,5 +5,6 @@ public record HealthDataIngestionDto(
     double HeartRateBPM,
     double TemperatureCelsius,
     double Latitude,
-    double Longitude
+    double Longitude,
+    double? BatteryLevel
 );

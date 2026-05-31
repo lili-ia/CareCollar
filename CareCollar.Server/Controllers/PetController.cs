@@ -13,13 +13,7 @@ namespace CareCollar.Controllers;
 [Produces(MediaTypeNames.Application.Json)]
 public class PetController(IPetService petService, IUserContext userContext) : ControllerBase
 {
-    /// <summary>
-    /// Adds a new pet to the user's profile.
-    /// </summary>
-    /// <param name="model">Details of the pet (Name, Species, Breed, etc.).</param>
-    /// <returns>The created pet object.</returns>
-    /// <response code="201">Pet successfully created.</response>
-    /// <response code="401">Unauthorized: User context missing.</response>
+    /// <summary>Adds a new pet to the user's profile.</summary>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PetDto))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -28,16 +22,14 @@ public class PetController(IPetService petService, IUserContext userContext) : C
     {
         var userId = userContext.UserId;
         if (userId == Guid.Empty) return Unauthorized();
-        
+
         var result = await petService.AddPetAsync(model, userId, HttpContext.RequestAborted);
-        return result.ToActionResult();
+        if (!result.IsSuccess) return result.ToActionResult();
+
+        return CreatedAtAction(nameof(GetPet), new { id = result.Value!.Id }, result.Value);
     }
 
-    /// <summary>
-    /// Retrieves all pets associated with the current user.
-    /// </summary>
-    /// <response code="200">Returns a list of pets.</response>
-    /// <response code="401">Unauthorized: User context missing.</response>
+    /// <summary>Retrieves all pets for the current user.</summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PetDto>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -45,18 +37,12 @@ public class PetController(IPetService petService, IUserContext userContext) : C
     {
         var userId = userContext.UserId;
         if (userId == Guid.Empty) return Unauthorized();
-        
+
         var result = await petService.GetAllPetsAsync(userId, HttpContext.RequestAborted);
         return Ok(result.Value);
     }
-    
-    /// <summary>
-    /// Gets specific pet details by ID.
-    /// </summary>
-    /// <param name="id">The unique Guid of the pet.</param>
-    /// <response code="200">Pet found.</response>
-    /// <response code="401">Unauthorized: User context missing.</response>
-    /// <response code="404">Pet not found for the current user.</response>
+
+    /// <summary>Gets a specific pet by ID.</summary>
     [HttpGet("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PetDto))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -65,19 +51,12 @@ public class PetController(IPetService petService, IUserContext userContext) : C
     {
         var userId = userContext.UserId;
         if (userId == Guid.Empty) return Unauthorized();
-        
+
         var result = await petService.GetPetByIdAsync(id, userId, HttpContext.RequestAborted);
         return result.ToActionResult();
     }
 
-    /// <summary>
-    /// Updates pet information (Name, Breed, or Weight).
-    /// </summary>
-    /// <param name="id">The Guid of the pet to update.</param>
-    /// <param name="model">New data for the pet.</param>
-    /// <response code="200">Pet successfully updated.</response>
-    /// <response code="401">Unauthorized: User context missing.</response>
-    /// <response code="404">Pet not found for the current user.</response>
+    /// <summary>Updates pet information.</summary>
     [HttpPut("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PetDto))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -88,6 +67,20 @@ public class PetController(IPetService petService, IUserContext userContext) : C
         if (userId == Guid.Empty) return Unauthorized();
 
         var result = await petService.UpdatePetAsync(id, model, userId, HttpContext.RequestAborted);
+        return result.ToActionResult();
+    }
+
+    /// <summary>Deletes a pet by ID.</summary>
+    [HttpDelete("{id:Guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeletePet(Guid id)
+    {
+        var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await petService.DeletePetAsync(id, userId, HttpContext.RequestAborted);
         return result.ToActionResult();
     }
 }

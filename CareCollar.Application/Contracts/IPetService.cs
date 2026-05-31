@@ -12,4 +12,6 @@ public interface IPetService
     Task<Result<List<PetDto>>> GetAllPetsAsync(Guid userId, CancellationToken ct);
 
     Task<Result<PetDto>> UpdatePetAsync(Guid id, UpdatePetDto petDto, Guid userId, CancellationToken ct);
-} // NOTE: MVP provides no remove pet logic
+
+    Task<Result> DeletePetAsync(Guid petId, Guid userId, CancellationToken ct);
+}

@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
   
   db:
-    image: postgres:latest
+    image: timescale/timescaledb:latest-pg16
     container_name: care-collar-db
     environment:
       POSTGRES_USER: postgres

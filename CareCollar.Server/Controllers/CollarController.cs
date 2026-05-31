@@ -12,58 +12,79 @@ namespace CareCollar.Controllers;
 [Produces(MediaTypeNames.Application.Json)]
 public class CollarController(ICollarService collarService, IUserContext userContext) : ControllerBase
 {
-    /// <summary>
-    /// Binds a physical collar to a specific pet.
-    /// </summary>
-    /// <remarks>
-    /// This is a **User function**. It allows the pet owner to link a collar they purchased to their pet's profile.
-    /// </remarks>
-    /// <response code="200">Collar successfully bound to the pet.</response>
-    /// <response code="401">User is not authorized and can not access this resource.</response>
-    /// <response code="404">Pet or Collar not found.</response>
-    /// <response code="409">Collar is already assigned to another pet.</response>
+    /// <summary>Returns all collars bound to a specific pet.</summary>
+    [Authorize]
+    [HttpGet("pet/{petId:guid}")]
+    [ProducesResponseType(typeof(List<CollarDeviceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPetCollars(Guid petId, CancellationToken ct)
+    {
+        var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await collarService.GetPetCollarsAsync(petId, userId, ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>Binds a collar to a pet using the serial number printed on the device.</summary>
+    [Authorize]
+    [HttpPost("bind-by-serial")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> BindCollarBySerial([FromBody] BindCollarBySerialDto dto, CancellationToken ct)
+    {
+        var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await collarService.BindToPetBySerialAsync(dto, userId, ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>Binds a physical collar to a specific pet by internal ID.</summary>
     [Authorize]
     [HttpPost("bind")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> BindCollar([FromBody] BindCollarDto dto, CancellationToken ct)
     {
         var userId = userContext.UserId;
-
-        if (userId == Guid.Empty)
-        {
-            return Unauthorized();
-        }
+        if (userId == Guid.Empty) return Unauthorized();
 
         var result = await collarService.BindToPetAsync(dto, userId, ct);
         return result.ToActionResult();
     }
 
-    /// <summary>
-    /// Registers a new collar serial number in the system.
-    /// </summary>
-    /// <remarks>
-    /// This is an **Administration function**. Usually performed by a system administrator or factory worker 
-    /// to add new hardware to the global database.
-    /// </remarks>
-    /// <response code="200">Device registered successfully.</response>
-    /// <response code="401">User is not authorized and can not access this resource.</response>
-    /// <response code="403">Forbidden: Current user is not an administrator.</response>
-    /// <response code="500">Internal server error during registration.</response>
+    /// <summary>[Admin] Registers a new collar serial number.</summary>
+    [Authorize]
     [HttpPost("admin/register")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Register([FromBody] RegisterCollarDto dto, CancellationToken ct)
     {
         var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
 
-        if (userId == Guid.Empty)
-        {
-            return Unauthorized();
-        }
-        
         var result = await collarService.RegisterDeviceAsync(dto, userId, ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>[Admin] Returns all registered collars in the system.</summary>
+    [Authorize]
+    [HttpGet("admin")]
+    [ProducesResponseType(typeof(List<CollarDeviceDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetAllCollars(CancellationToken ct)
+    {
+        var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await collarService.GetAllCollarsAsync(userId, ct);
         return result.ToActionResult();
     }
 }

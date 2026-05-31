@@ -16,17 +16,15 @@ builder.Services.AddOpenApi();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<CareCollarDbContext>(options =>
-    options.UseNpgsql(connectionString, 
+    options.UseNpgsql(connectionString,
         o => o.UseNodaTime()));
 
-builder.Services.AddScoped<IDbConnection>((sp) => 
-    new NpgsqlConnection(connectionString));
-
-builder.Services.AddScoped<ICareCollarDbContext>(provider => 
+builder.Services.AddScoped<IDbConnection>(_ => new NpgsqlConnection(connectionString));
+builder.Services.AddScoped<ICareCollarDbContext>(provider =>
     provider.GetRequiredService<CareCollarDbContext>());
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.ASCII.GetBytes( // HACK: configure null checking for all sections on startup
+var key = Encoding.ASCII.GetBytes(
     jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured"));
 
 builder.Services.AddHttpContextAccessor();
@@ -47,17 +45,33 @@ builder.Services.AddAuthentication(options =>
     })
     .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false; // NOTE: only for development
+        options.RequireHttpsMetadata = false;
         options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = false,  // NOTE: this and ValidateAudience set to false only for development
-            ValidateAudience = false, 
+            ValidateIssuer = false,
+            ValidateAudience = false,
         };
     });
+
 builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:4173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
     options.SuppressMapClientErrors = true;
@@ -91,13 +105,13 @@ builder.Services.AddSwaggerGen(options =>
         {
             new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference 
-                { 
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, 
-                    Id = "Bearer" 
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
@@ -106,18 +120,53 @@ var app = builder.Build();
 
 for (int i = 0; i < 10; i++)
 {
-    try 
+    try
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<CareCollarDbContext>();
         db.Database.Migrate();
-        break; 
+        await SeedAdminAsync(scope.ServiceProvider);
+        break;
     }
-    catch (Npgsql.NpgsqlException)
+    catch (NpgsqlException)
     {
         Console.WriteLine("Db is not ready. Waiting 3 seconds.");
         Thread.Sleep(3000);
     }
+}
+
+static async Task SeedAdminAsync(IServiceProvider services)
+{
+    var config = services.GetRequiredService<IConfiguration>();
+    var adminEmail = config["AdminSeed:Email"];
+    var adminPassword = config["AdminSeed:Password"];
+
+    if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+        return;
+
+    var db = services.GetRequiredService<CareCollarDbContext>();
+    var hasher = services.GetRequiredService<CareCollar.Application.Contracts.IPasswordHasher>();
+
+    var existing = await db.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
+    if (existing is not null)
+    {
+        if (!existing.IsAdmin)
+        {
+            existing.IsAdmin = true;
+            await db.SaveChangesAsync();
+            Console.WriteLine($"Promoted existing user '{adminEmail}' to admin.");
+        }
+        return;
+    }
+
+    db.Users.Add(new CareCollar.Domain.Entities.User
+    {
+        Email = adminEmail,
+        PasswordHash = hasher.HashPassword(adminPassword),
+        IsAdmin = true
+    });
+    await db.SaveChangesAsync();
+    Console.WriteLine($"Admin user '{adminEmail}' created.");
 }
 
 if (app.Environment.IsDevelopment())
@@ -126,11 +175,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        options.RoutePrefix = string.Empty; 
+        options.RoutePrefix = string.Empty;
     });
 }
 
-app.UseHttpsRedirection();
+app.UseCors("Frontend");
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

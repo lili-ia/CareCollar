@@ -21,6 +21,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255);
 
+        builder.Property(u => u.IsAdmin)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasMany(u => u.Pets)
             .WithOne(p => p.User)
             .HasForeignKey(p => p.UserId)

@@ -47,6 +47,27 @@ public class HealthDataController(
     }
     
     /// <summary>
+    /// Returns the most recent telemetry point for a collar (used for live map).
+    /// </summary>
+    [HttpGet("latest/{collarId:Guid}")]
+    [ProducesResponseType(typeof(LatestHealthDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLatest(Guid collarId, CancellationToken ct)
+    {
+        var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var owns = await collarService.UserOwnsCollarAsync(collarId, userId, ct);
+        if (!owns) return NotFound("Collar not found.");
+
+        var latest = await dataRepo.GetLatestAsync(collarId);
+        if (latest is null) return NotFound("No data yet.");
+
+        return Ok(latest);
+    }
+
+    /// <summary>
     /// Receives real-time telemetry from the smart collar hardware.
     /// </summary>
     /// <remarks>

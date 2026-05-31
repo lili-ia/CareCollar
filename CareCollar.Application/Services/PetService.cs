@@ -19,7 +19,7 @@ public class PetService(ILogger<PetService> logger, ICareCollarDbContext context
             Species = petDto.Species,
             WeightKg = petDto.WeightKg,
             Breed = petDto.Breed,
-            DateOfBirth = DateTime.SpecifyKind(petDto.DateOfBirth, DateTimeKind.Utc) 
+            DateOfBirth = DateTime.SpecifyKind(petDto.DateOfBirth, DateTimeKind.Utc)
         };
         try
         {
@@ -35,7 +35,7 @@ public class PetService(ILogger<PetService> logger, ICareCollarDbContext context
             return Result<PetDto>.InternalServerError();
         }
     }
-    
+
     public async Task<Result<PetDto>> GetPetByIdAsync(Guid id, Guid userId, CancellationToken ct)
     {
         var petDto = await context.Pets
@@ -43,10 +43,10 @@ public class PetService(ILogger<PetService> logger, ICareCollarDbContext context
             .Where(p => p.Id == id && p.UserId == userId)
             .Select(PetMapper.ScalarProjection)
             .FirstOrDefaultAsync(ct);
-        
+
         if (petDto is null)
             return Result<PetDto>.Failure("Pet not found", ErrorType.NotFound);
-        
+
         return Result<PetDto>.Success(petDto);
     }
 
@@ -88,6 +88,27 @@ public class PetService(ILogger<PetService> logger, ICareCollarDbContext context
         {
             logger.LogError(ex, "Failed to save updates for pet {PetId}", id);
             return Result<PetDto>.InternalServerError();
+        }
+    }
+
+    public async Task<Result> DeletePetAsync(Guid petId, Guid userId, CancellationToken ct)
+    {
+        var pet = await context.Pets
+            .FirstOrDefaultAsync(p => p.Id == petId && p.UserId == userId, ct);
+
+        if (pet is null)
+            return Result.Failure("Pet not found.", ErrorType.NotFound);
+
+        try
+        {
+            context.Pets.Remove(pet);
+            await context.SaveChangesAsync(ct);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to delete pet {PetId}", petId);
+            return Result.InternalServerError();
         }
     }
 }
