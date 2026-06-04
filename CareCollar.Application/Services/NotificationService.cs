@@ -72,4 +72,18 @@ public class NotificationService(ICareCollarDbContext context, ILogger<Notificat
         await context.SaveChangesAsync(ct);
         return Result.Success();
     }
+
+    public async Task<Result> SaveFcmTokenAsync(Guid userId, string token, CancellationToken ct)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user is null)
+            return Result.Failure("User not found", ErrorType.NotFound);
+
+        user.FcmToken = token;
+        await context.SaveChangesAsync(ct);
+
+        logger.LogInformation("FCM token saved for User {UserId}", userId);
+        return Result.Success();
+    }
 }

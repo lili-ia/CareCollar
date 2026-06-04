@@ -12,4 +12,6 @@ public interface INotificationService
     Task<List<NotificationDto>> GetAllNotificationsForUserAsync(Guid userId, CancellationToken ct);
 
     Task<Result> MarkAsReadAsync(Guid notificationId, Guid userId, CancellationToken ct);
+
+    Task<Result> SaveFcmTokenAsync(Guid userId, string token, CancellationToken ct);
 }

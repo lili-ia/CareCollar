@@ -1,6 +1,7 @@
 using CareCollar.Application.Contracts;
 using CareCollar.Application.DTOs;
 using CareCollar.Extensions;
+using CareCollar.Server.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,6 +36,20 @@ public class NotificationController(INotificationService notificationService, IU
 
         var notifications = await notificationService.GetAllNotificationsForUserAsync(userId, ct);
         return Ok(notifications);
+    }
+
+    /// <summary>Saves the FCM token for the authenticated user.</summary>
+    [HttpPost("fcm-token")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SaveFcmToken([FromBody] SaveFcmTokenRequest request, CancellationToken ct = default)
+    {
+        var userId = userContext.UserId;
+        if (userId == Guid.Empty) return Unauthorized();
+
+        var result = await notificationService.SaveFcmTokenAsync(userId, request.Token, ct);
+        return result.ToActionResult();
     }
 
     /// <summary>Marks a notification as read.</summary>

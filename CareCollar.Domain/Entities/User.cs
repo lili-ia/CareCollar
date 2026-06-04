@@ -8,5 +8,7 @@ public class User : BaseEntity
     
     public bool IsAdmin { get; set; } = false;
 
+    public string? FcmToken { get; set; }
+
     public ICollection<Pet> Pets { get; set; } = [];
 }
