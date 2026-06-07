@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CareCollar.Application.Services;
 
-public class NotificationService(ICareCollarDbContext context, ILogger<NotificationService> logger)
+public class NotificationService(ICareCollarDbContext context, IFcmService fcmService, ILogger<NotificationService> logger)
     : INotificationService
 {
     public async Task CreateNotificationAsync(Guid userId, string title, string message, CancellationToken ct)
@@ -23,6 +23,14 @@ public class NotificationService(ICareCollarDbContext context, ILogger<Notificat
         await context.SaveChangesAsync(ct);
 
         logger.LogInformation("Notification stored in DB for User {UserId}: {Title}", userId, title);
+
+        var fcmToken = await context.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.FcmToken)
+            .FirstOrDefaultAsync(ct);
+
+        if (!string.IsNullOrEmpty(fcmToken))
+            await fcmService.SendAsync(fcmToken, title, message, CancellationToken.None);
     }
 
     public async Task<List<NotificationDto>> GetLatestNotificationsForUserAsync(Guid userId, CancellationToken ct)

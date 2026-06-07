@@ -2,6 +2,7 @@ using System.Data;
 using System.Text;
 using CareCollar.Application.Contracts;
 using CareCollar.Application.Services;
+using CareCollar.Infrastructure.Firebase;
 using CareCollar.Infrastructure.Security;
 using CareCollar.Persistence;
 using CareCollar.Persistence.Repositories;
@@ -37,6 +38,7 @@ builder.Services.AddScoped<IHealthDataRepository, HealthDataRepository>();
 builder.Services.AddScoped<IIngestionService, IngestionService>();
 builder.Services.AddScoped<IThresholdService, ThresholdService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddFirebase(builder.Configuration);
 
 builder.Services.AddAuthentication(options =>
     {
